@@ -1,0 +1,231 @@
+<section *ngIf="!isLoggedIn" class="login-screen">
+  <div class="login-visual">
+    <div class="brand"><span class="brand-mark">F</span> FerreControl</div>
+    <div class="login-copy">
+      <span class="eyebrow" style="color:#8ec5ff">Inventario local</span>
+      <h1>Control claro para cada producto.</h1>
+      <p>Consulta existencias, registra movimientos y detecta faltantes antes de que afecten el trabajo diario de la ferretería.</p>
+      <div class="login-points">
+        <div class="login-point"><strong>248</strong><span>productos activos</span></div>
+        <div class="login-point"><strong>12</strong><span>alertas por revisar</span></div>
+        <div class="login-point"><strong>100%</strong><span>funcionamiento local</span></div>
+      </div>
+    </div>
+    <div class="login-foot">Proyecto académico de Programación Orientada a Objetos</div>
+  </div>
+  <div class="login-panel">
+    <form (ngSubmit)="loginSubmit()" class="login-card">
+      <span class="eyebrow">Acceso administrativo</span>
+      <h2>Bienvenido</h2>
+      <p>Ingresa tus credenciales para administrar el inventario.</p>
+      <div class="field">
+        <label for="usuario">Usuario</label>
+        <input id="usuario" class="control" [(ngModel)]="usuario" name="usuario" autocomplete="username">
+      </div>
+      <div class="field">
+        <label for="password">Contraseña</label>
+        <div class="password-wrap">
+          <input id="password" class="control" [type]="showPassword ? 'text' : 'password'" [(ngModel)]="password" name="password" autocomplete="current-password">
+          <button class="password-toggle" type="button" (click)="togglePassword()">{{ showPassword ? 'Ocultar' : 'Ver' }}</button>
+        </div>
+      </div>
+      <button class="btn btn-primary btn-block" type="submit">Iniciar sesión</button>
+      <div class="demo-note"><strong>Prototipo visual:</strong> puedes ingresar directamente. No se validan credenciales ni se guardan datos reales.</div>
+      <div class="demo-accounts" aria-label="Cuentas de demostración">
+        <button class="demo-account" type="button" (click)="enterDemoSession('administrador')"><strong>Entrar como administrador</strong><span>Acceso completo</span></button>
+        <button class="demo-account" type="button" (click)="enterDemoSession('empleado')"><strong>Entrar como empleado</strong><span>Acceso operativo</span></button>
+      </div>
+    </form>
+  </div>
+</section>
+
+<section *ngIf="isLoggedIn" class="app-shell">
+  <aside class="sidebar" [class.open]="sidebarOpen">
+    <div class="brand"><span class="brand-mark">F</span> FerreControl</div>
+    <div class="nav-label">Principal</div>
+    <nav class="nav" aria-label="Navegación principal">
+      <button class="nav-button" [class.active]="currentView === 'dashboard'" (click)="showView('dashboard')"><span class="nav-icon">▦</span>Panel principal</button>
+      <button class="nav-button" [class.active]="currentView === 'productos'" (click)="showView('productos')"><span class="nav-icon">□</span>Productos</button>
+      <button *ngIf="currentRole === 'ADMINISTRADOR'" class="nav-button" [class.active]="currentView === 'categorias'" (click)="showView('categorias')"><span class="nav-icon">⌑</span>Categorías</button>
+      <button *ngIf="currentRole === 'ADMINISTRADOR'" class="nav-button" [class.active]="currentView === 'proveedores'" (click)="showView('proveedores')"><span class="nav-icon">◇</span>Proveedores</button>
+      <button *ngIf="currentRole === 'ADMINISTRADOR'" class="nav-button" [class.active]="currentView === 'usuarios'" (click)="showView('usuarios')"><span class="nav-icon">♙</span>Usuarios</button>
+      <div class="nav-label">Inventario</div>
+      <button class="nav-button" [class.active]="currentView === 'movimientos'" (click)="showView('movimientos')"><span class="nav-icon">⇄</span>Registrar movimiento</button>
+      <button class="nav-button" [class.active]="currentView === 'historial'" (click)="showView('historial')"><span class="nav-icon">◷</span>Historial</button>
+      <button *ngIf="currentRole === 'ADMINISTRADOR'" class="nav-button" [class.active]="currentView === 'respaldos'" (click)="showView('respaldos')"><span class="nav-icon">▣</span>Copias de seguridad</button>
+    </nav>
+    <div class="sidebar-footer">
+      <small>Base de datos local</small>
+      <strong>SQLite · Conectada</strong>
+    </div>
+  </aside>
+
+  <div class="workspace">
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="menu-toggle" type="button" aria-label="Abrir menú" (click)="toggleSidebar()">☰</button>
+        <div class="breadcrumb"><span>Sistema de inventario</span><strong>{{ titles[currentView] }}</strong></div>
+      </div>
+      <div class="user-menu">
+        <div class="avatar">{{ userInitials }}</div>
+        <div class="user-copy"><strong>{{ currentName }}</strong><span><span class="role-badge">{{ currentRole === 'ADMINISTRADOR' ? 'Administrador' : 'Empleado' }}</span> · Sesión local</span></div>
+        <button class="btn btn-secondary" type="button" (click)="logout()">Cerrar sesión</button>
+      </div>
+    </header>
+
+    <main class="main">
+      <section *ngIf="currentView === 'dashboard'" class="view active">
+        <div class="page-head">
+          <div><h1>Resumen del inventario</h1><p>Estado general de los productos y movimientos recientes.</p></div>
+          <div class="head-actions"><button class="btn btn-primary" (click)="showView('movimientos')">＋ Registrar movimiento</button></div>
+        </div>
+        <div class="grid stats">
+          <article class="card stat-card"><div><div class="stat-label">Productos activos</div><div class="stat-value">248</div><div class="stat-meta">En 8 categorías</div></div><div class="stat-icon icon-blue">□</div></article>
+          <article class="card stat-card"><div><div class="stat-label">Unidades disponibles</div><div class="stat-value">3,842</div><div class="stat-meta">Existencias totales</div></div><div class="stat-icon icon-green">✓</div></article>
+          <article class="card stat-card"><div><div class="stat-label">Existencias bajas</div><div class="stat-value">9</div><div class="stat-meta">Requieren reposición</div></div><div class="stat-icon icon-amber">!</div></article>
+          <article class="card stat-card"><div><div class="stat-label">Productos agotados</div><div class="stat-value">3</div><div class="stat-meta">Sin unidades disponibles</div></div><div class="stat-icon icon-red">×</div></article>
+        </div>
+        <div class="grid two-cols" style="margin-top:18px">
+          <article class="card card-pad">
+            <div class="section-title"><h2>Movimientos recientes</h2><button class="text-button" (click)="showView('historial')">Ver historial</button></div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Producto</th><th>Tipo</th><th>Cantidad</th><th>Fecha</th></tr></thead>
+                <tbody>
+                  <tr><td>Taladro percutor 650 W</td><td><span class="chip chip-ok">Entrada</span></td><td>+8</td><td>Hoy, 09:42</td></tr>
+                  <tr><td>Tornillo galvanizado 1/4 × 2</td><td><span class="chip chip-out">Salida</span></td><td>−24</td><td>Hoy, 09:10</td></tr>
+                  <tr><td>Pintura látex blanca 1 galón</td><td><span class="chip chip-low">Ajuste</span></td><td>−2</td><td>Ayer, 17:35</td></tr>
+                  <tr><td>Cinta aislante negra</td><td><span class="chip chip-ok">Entrada</span></td><td>+30</td><td>Ayer, 15:18</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </article>
+          <div class="grid">
+            <article class="card card-pad">
+              <div class="section-title"><h2>Alertas</h2><button class="text-button" (click)="showView('productos')">Revisar</button></div>
+              <div class="alerts">
+                <div class="alert-row alert-red"><div class="alert-mark">×</div><div><strong>Productos agotados</strong><span>No permiten nuevas salidas</span></div><div class="alert-count">3</div></div>
+                <div class="alert-row alert-amber"><div class="alert-mark">!</div><div><strong>Existencias bajas</strong><span>Igual o menor al mínimo</span></div><div class="alert-count">9</div></div>
+              </div>
+            </article>
+            <article class="card card-pad">
+              <div class="section-title"><h2>Acciones rápidas</h2></div>
+              <div class="quick-actions">
+                <button *ngIf="currentRole === 'ADMINISTRADOR'" class="quick-action" (click)="openProductModal()"><span>＋</span><b>Producto</b><small>Registrar nuevo</small></button>
+                <button class="quick-action" (click)="showView('movimientos')"><span>⇧</span><b>Entrada</b><small>Agregar stock</small></button>
+                <button class="quick-action" (click)="showView('movimientos')"><span>⇩</span><b>Salida</b><small>Retirar stock</small></button>
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section *ngIf="currentView === 'productos'" class="view active">
+        <div class="page-head">
+          <div><h1>Productos</h1><p>Consulta existencias y administra el catálogo de la ferretería.</p></div>
+          <button *ngIf="currentRole === 'ADMINISTRADOR'" class="btn btn-primary" (click)="openProductModal()">＋ Nuevo producto</button>
+        </div>
+        <article class="card card-pad">
+          <div class="toolbar">
+            <div class="search"><input class="control" placeholder="Buscar por nombre o código"></div>
+            <select class="control"><option value="todos">Todos los estados</option><option value="disponible">Disponible</option><option value="bajo">Stock bajo</option><option value="agotado">Agotado</option><option value="inactivo">Inactivo</option></select>
+            <select class="control"><option>Todas las categorías</option><option>Herramientas</option><option>Fijaciones</option><option>Pinturas</option><option>Electricidad</option></select>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Producto</th><th>Código</th><th>Categoría</th><th>Existencias</th><th>Ubicación</th><th>Estado</th><th>Acciones</th></tr></thead>
+              <tbody>
+                <tr><td><div class="product-cell"><div class="product-thumb">⚙</div><div><strong>Taladro percutor 650 W</strong><span>Bosch · Unidad</span></div></div></td><td>HER-001</td><td>Herramientas</td><td><strong>18</strong> / mín. 5</td><td>Pasillo 1 · A2</td><td><span class="chip chip-ok">Disponible</span></td><td><span *ngIf="currentRole === 'ADMINISTRADOR'"><button class="icon-btn" (click)="triggerToast('Vista de edición simulada')">✎</button> <button class="icon-btn" (click)="triggerToast('El producto se desactivaría tras confirmar')">⋯</button></span><span *ngIf="currentRole !== 'ADMINISTRADOR'">Solo consulta</span></td></tr>
+                <tr><td><div class="product-cell"><div class="product-thumb">⌁</div><div><strong>Tornillo galvanizado 1/4 × 2</strong><span>Fixser · Caja x 100</span></div></div></td><td>FIJ-024</td><td>Fijaciones</td><td><strong>4</strong> / mín. 8</td><td>Pasillo 3 · B1</td><td><span class="chip chip-low">Stock bajo</span></td><td><span *ngIf="currentRole === 'ADMINISTRADOR'"><button class="icon-btn" (click)="triggerToast('Vista de edición simulada')">✎</button> <button class="icon-btn" (click)="triggerToast('El producto se desactivaría tras confirmar')">⋯</button></span><span *ngIf="currentRole !== 'ADMINISTRADOR'">Solo consulta</span></td></tr>
+                <tr><td><div class="product-cell"><div class="product-thumb">◉</div><div><strong>Pintura látex blanca 1 galón</strong><span>ColorMax · Galón</span></div></div></td><td>PIN-008</td><td>Pinturas</td><td><strong>0</strong> / mín. 4</td><td>Pasillo 5 · C3</td><td><span class="chip chip-out">Agotado</span></td><td><span *ngIf="currentRole === 'ADMINISTRADOR'"><button class="icon-btn" (click)="triggerToast('Vista de edición simulada')">✎</button> <button class="icon-btn" (click)="triggerToast('El producto se desactivaría tras confirmar')">⋯</button></span><span *ngIf="currentRole !== 'ADMINISTRADOR'">Solo consulta</span></td></tr>
+                <tr><td><div class="product-cell"><div class="product-thumb">◌</div><div><strong>Cinta aislante negra</strong><span>3M · Unidad</span></div></div></td><td>ELE-013</td><td>Electricidad</td><td><strong>32</strong> / mín. 10</td><td>Pasillo 4 · D2</td><td><span class="chip chip-ok">Disponible</span></td><td><span *ngIf="currentRole === 'ADMINISTRADOR'"><button class="icon-btn" (click)="triggerToast('Vista de edición simulada')">✎</button> <button class="icon-btn" (click)="triggerToast('El producto se desactivaría tras confirmar')">⋯</button></span><span *ngIf="currentRole !== 'ADMINISTRADOR'">Solo consulta</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </article>
+      </section>
+
+      <section *ngIf="currentView === 'categorias'" class="view active">
+        <div class="page-head"><div><h1>Categorías</h1><p>Organiza los productos y controla el estado de cada categoría.</p></div><button class="btn btn-primary" (click)="triggerToast('Formulario de categoría simulado')">＋ Nueva categoría</button></div>
+        <article class="card card-pad">
+          <div class="toolbar"><div class="search"><input class="control" placeholder="Buscar categoría"></div><select class="control"><option>Todas</option><option>Activas</option><option>Inactivas</option></select></div>
+          <div class="table-wrap"><table><thead><tr><th>Categoría</th><th>Descripción</th><th>Productos activos</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>
+            <tr><td><strong>Herramientas</strong></td><td>Herramientas manuales y eléctricas</td><td>42</td><td><span class="chip chip-ok">Activa</span></td><td><button class="icon-btn" (click)="triggerToast('Edición simulada')">✎</button></td></tr>
+            <tr><td><strong>Fijaciones</strong></td><td>Tornillos, clavos, pernos y anclajes</td><td>67</td><td><span class="chip chip-ok">Activa</span></td><td><button class="icon-btn" (click)="triggerToast('Edición simulada')">✎</button></td></tr>
+            <tr><td><strong>Pinturas</strong></td><td>Pinturas, esmaltes y accesorios</td><td>31</td><td><span class="chip chip-ok">Activa</span></td><td><button class="icon-btn" (click)="triggerToast('Edición simulada')">✎</button></td></tr>
+          </tbody></table></div>
+        </article>
+      </section>
+
+      <section *ngIf="currentView === 'proveedores'" class="view active">
+        <div class="page-head"><div><h1>Proveedores</h1><p>Consulta los contactos y productos relacionados con cada proveedor.</p></div><button class="btn btn-primary" (click)="triggerToast('Formulario de proveedor simulado')">＋ Nuevo proveedor</button></div>
+        <article class="card card-pad">
+          <div class="toolbar"><div class="search"><input class="control" placeholder="Buscar proveedor"></div><select class="control"><option>Todos los estados</option><option>Activos</option><option>Inactivos</option></select></div>
+          <div class="table-wrap"><table><thead><tr><th>Proveedor</th><th>Contacto</th><th>Teléfono</th><th>Productos</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>
+            <tr><td><strong>Distribuidora Central SAC</strong><br><span style="color:var(--muted);font-size:12px">RUC 20123456789</span></td><td>ventas@central.pe</td><td>987 456 210</td><td>58</td><td><span class="chip chip-ok">Activo</span></td><td><button class="icon-btn" (click)="triggerToast('Edición simulada')">✎</button></td></tr>
+            <tr><td><strong>Herramientas del Pacífico</strong><br><span style="color:var(--muted);font-size:12px">RUC 20987654321</span></td><td>pedidos@pacifico.pe</td><td>944 103 880</td><td>24</td><td><span class="chip chip-ok">Activo</span></td><td><button class="icon-btn" (click)="triggerToast('Edición simulada')">✎</button></td></tr>
+          </tbody></table></div>
+        </article>
+      </section>
+
+      <section *ngIf="currentView === 'movimientos'" class="view active">
+        <div class="page-head"><div><h1>Registrar movimiento</h1><p>Modifica las existencias dejando siempre un registro en el historial.</p></div></div>
+        <div class="grid two-cols">
+          <form class="card card-pad" (ngSubmit)="registerMovement()">
+            <div class="movement-types">
+              <button type="button" class="movement-type" [class.active]="movementType === 'Entrada'" (click)="movementType = 'Entrada'">⇧ Entrada</button>
+              <button type="button" class="movement-type" [class.active]="movementType === 'Salida'" (click)="movementType = 'Salida'">⇩ Salida</button>
+              <button *ngIf="currentRole === 'ADMINISTRADOR'" type="button" class="movement-type" [class.active]="movementType === 'Ajuste'" (click)="movementType = 'Ajuste'">⇄ Ajuste</button>
+            </div>
+            <div class="form-grid">
+              <div class="field full"><label>Producto</label><select class="control" [(ngModel)]="movementProduct" name="mProduct"><option value="">Selecciona un producto</option><option>Taladro percutor 650 W</option><option>Tornillo galvanizado 1/4 × 2</option></select></div>
+              <div class="field"><label>Cantidad</label><input class="control" type="number" min="1" [(ngModel)]="movementQty" name="mQty" placeholder="0"></div>
+              <div class="field"><label>Motivo</label><select class="control" [(ngModel)]="movementReason" name="mReason"><option>Compra de mercadería</option><option>Venta</option><option>Uso interno</option></select></div>
+            </div>
+            <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:16px"><button type="submit" class="btn btn-primary">Registrar movimiento</button></div>
+          </form>
+        </div>
+      </section>
+
+      <section *ngIf="currentView === 'historial'" class="view active">
+        <div class="page-head"><div><h1>Historial de movimientos</h1><p>Consulta la trazabilidad completa de las existencias.</p></div></div>
+        <article class="card card-pad">
+          <div class="table-wrap"><table><thead><tr><th>Fecha</th><th>Producto</th><th>Tipo</th><th>Cantidad</th><th>Motivo</th><th>Responsable</th></tr></thead><tbody>
+            <tr><td>05/10/2026 09:42</td><td>Taladro percutor 650 W</td><td><span class="chip chip-ok">Entrada</span></td><td>+8</td><td>Compra de mercadería</td><td>Administrador</td></tr>
+          </tbody></table></div>
+        </article>
+      </section>
+
+      <section *ngIf="currentView === 'usuarios'" class="view active">
+        <div class="page-head"><div><h1>Usuarios y permisos</h1><p>Administra las cuentas individuales que pueden utilizar el sistema.</p></div><button class="btn btn-primary" (click)="openUserModal()">＋ Registrar usuario</button></div>
+        <article class="card card-pad">
+          <div class="table-wrap"><table><thead><tr><th>Usuario</th><th>Nombre completo</th><th>Rol</th><th>Estado</th></tr></thead><tbody>
+            <tr><td><strong>administrador</strong></td><td>Administrador principal</td><td><span class="role-badge">Administrador</span></td><td><span class="chip chip-ok">Activo</span></td></tr>
+          </tbody></table></div>
+        </article>
+      </section>
+
+      <section *ngIf="currentView === 'respaldos'" class="view active">
+        <div class="page-head"><div><h1>Copias de seguridad</h1><p>Protege la información local.</p></div><button class="btn btn-primary" (click)="triggerToast('Copia local creada — demostración')">＋ Crear copia ahora</button></div>
+      </section>
+    </main>
+  </div>
+</section>
+
+<div class="modal-backdrop" *ngIf="showProductModal">
+  <div class="modal">
+    <div class="modal-head"><h2>Registrar producto</h2><button class="modal-close" (click)="showProductModal = false">×</button></div>
+    <div class="modal-body"><p>Formulario de producto integrado.</p></div>
+    <div class="modal-foot"><button class="btn btn-secondary" (click)="showProductModal = false">Cancelar</button></div>
+  </div>
+</div>
+
+<div class="modal-backdrop" *ngIf="showUserModal">
+  <div class="modal">
+    <div class="modal-head"><h2>Registrar usuario</h2><button class="modal-close" (click)="showUserModal = false">×</button></div>
+    <div class="modal-body"><p>Formulario de usuario integrado.</p></div>
+    <div class="modal-foot"><button class="btn btn-secondary" (click)="showUserModal = false">Cancelar</button></div>
+  </div>
+</div>
+
+<div class="toast" [class.show]="toastVisible">{{ toastMessage }}</div>
